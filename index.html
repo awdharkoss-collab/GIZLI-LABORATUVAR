@@ -115,7 +115,6 @@
         <div id="dreamList" style="max-height:130px; overflow-y:auto; font-size:12px;"></div>
     </div>
 </div>
-
 <div class="view" id="view4">
     <div class="card">
         <h3>👽 EVP Gizli Ses Tarayıcı & Ters Ses Çalar</h3>
@@ -143,6 +142,30 @@
 </div>
 
 <div class="view" id="view5">
+    <div class="card" style="text-align:center;">
+        <h3>🧲 Manyetik Alan & Gizli Cihaz Dedektörü (EMF)</h3>
+        <div style="font-size:26px; font-weight:900; color:var(--neon); margin:8px 0;" id="emfValue">0.0 µT</div>
+        <div style="width:100%; height:14px; background:#030608; border-radius:7px; overflow:hidden; border:1px solid rgba(0,245,212,0.3); margin-bottom:10px;">
+            <div id="emfBar" style="width:0%; height:100%; background:linear-gradient(90deg, #00f5d4, #ff2a5f); transition:0.15s;"></div>
+        </div>
+        <div id="emfStatus" style="font-size:11px; color:#94a3b8; margin-bottom:8px;">Metal, mıknatıs veya gizli elektronik devre taraması hazır</div>
+        <button type="button" class="btn fill" style="width:100%;" onclick="startEmfDetector()">📡 EMF Radarını Başlat</button>
+    </div>
+    <div class="card">
+        <h3>📊 Canlı Ses Dalga Spektrum Analizörü (Osiloskop)</h3>
+        <canvas id="scopeCanvas" style="height:140px;"></canvas>
+        <button type="button" class="btn fill" style="width:100%; margin-top:8px;" onclick="startOscilloscope()">🎙️ Canlı Ses Spektrumunu Başlat</button>
+    </div>
+</div>
+
+<div class="view" id="view6">
+    <div class="card" style="text-align:center;">
+        <h3>🌌 Canlı Yıldız Haritası & Gök Cismi Radarı</h3>
+        <canvas id="skyCanvas" style="height:240px; border-radius:50%; max-width:240px; margin:8px auto;"></canvas>
+        <div id="skyStatus" style="font-size:11px; color:var(--neon); margin:6px 0;">İstanbul Gökyüzü Kubbesi Hazır</div>
+        <button type="button" class="btn fill" style="width:100%;" onclick="startSkyRadar()">🔭 Gökyüzü Sensörünü Başlat</button>
+    </div>
+</div>
 <script>
     let audioCtx = null, sonarOsc = null, sleepOsc = null, binauralNodes = null, stormStartTime = null, polyInterval = null, evpReversedBuffer = null;
     let seismoPoints = new Array(80).fill(0), polyPoints = new Array(60).fill(0);

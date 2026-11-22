@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GİZLİ LABORATUVAR PRO • 6-in-1</title>
+    <title>GİZLİ LABORATUVAR PRO • 5-in-1</title>
     <style>
         :root { --bg: #05080a; --panel: #0c1318; --neon: #00f5d4; --warn: #ff2a5f; --text: #e2e8f0; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, monospace; }
@@ -12,7 +12,7 @@
         .brand { font-size: 15px; font-weight: 900; color: var(--neon); letter-spacing: 1px; }
         .tabs { display: flex; overflow-x: auto; background: #080d11; border-bottom: 1px solid rgba(255,255,255,0.08); scrollbar-width: none; }
         .tabs::-webkit-scrollbar { display: none; }
-        .tab { padding: 10px 10px; text-align: center; font-size: 11px; font-weight: 800; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; flex-shrink: 0; }
+        .tab { flex: 1; padding: 10px 8px; text-align: center; font-size: 11px; font-weight: 800; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
         .tab.active { color: var(--neon); border-bottom-color: var(--neon); background: rgba(0,245,212,0.06); }
         .view { display: none; flex: 1; overflow-y: auto; padding: 12px; flex-direction: column; gap: 12px; }
         .view.active { display: flex; }
@@ -35,7 +35,7 @@
 <body>
 <header>
     <div class="brand">⚛️ GİZLİ LABORATUVAR</div>
-    <div style="font-size:10px; color:#94a3b8;">6-IN-1 SENSÖR & AJAN ÜSSÜ</div>
+    <div style="font-size:10px; color:#94a3b8;">5-IN-1 SENSÖR & AJAN ÜSSÜ</div>
 </header>
 
 <div class="tabs">
@@ -43,8 +43,7 @@
     <div class="tab" onclick="switchTab(1)">📈 SİSMOGRAF</div>
     <div class="tab" onclick="switchTab(2)">🕵️‍♂️ YALAN ÖLÇER</div>
     <div class="tab" onclick="switchTab(3)">🌙 RÜYA/UYKU</div>
-    <div class="tab" onclick="switchTab(4)">⚡ F1 & TAKTİK</div>
-    <div class="tab" onclick="switchTab(5)">🛸 AJAN & BİLİM</div>
+    <div class="tab" onclick="switchTab(4)">🛸 AJAN & BİLİM</div>
 </div>
 
 <div class="view active" id="view0">
@@ -116,28 +115,32 @@
 </div>
 
 <div class="view" id="view4">
-    <div class="card" style="text-align:center;">
-        <h3>⚡ F1 Start Refleks Ölçer</h3>
-        <div id="f1Lights" style="display:flex; justify-content:center; gap:8px; margin:10px 0;">
-            <span class="f1-dot" style="width:20px;height:20px;border-radius:50%;background:#1e293b;display:inline-block;"></span>
-            <span class="f1-dot" style="width:20px;height:20px;border-radius:50%;background:#1e293b;display:inline-block;"></span>
-            <span class="f1-dot" style="width:20px;height:20px;border-radius:50%;background:#1e293b;display:inline-block;"></span>
-            <span class="f1-dot" style="width:20px;height:20px;border-radius:50%;background:#1e293b;display:inline-block;"></span>
-            <span class="f1-dot" style="width:20px;height:20px;border-radius:50%;background:#1e293b;display:inline-block;"></span>
+    <div class="card">
+        <h3>👽 EVP Gizli Ses Tarayıcı & Ters Ses Çalar</h3>
+        <p style="font-size:11px; color:#94a3b8; margin-bottom:8px;">Ortamdaki gizli sesleri yakala, güçlendir ve tersten dinle:</p>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button type="button" class="btn danger" id="evpRecBtn" onclick="toggleEvpRecord()">🎙️ 5 Sn Gizli Ses Yakala</button>
+            <button type="button" class="btn fill" onclick="playEvpReversed()">⏪ Tersten Çal (EVP Analiz)</button>
         </div>
-        <div id="f1Status" style="font-size:14px; font-weight:900; color:var(--neon); margin-bottom:8px;">Hazır mısın?</div>
-        <button type="button" id="f1Btn" class="btn fill" style="width:100%; padding:12px;" onclick="handleF1Click()">🏎️ Testi Başlat</button>
+        <div id="evpStatus" style="font-size:11px; color:var(--neon); margin-top:6px;">Beklemede...</div>
     </div>
     <div class="card">
-        <h3>🔦 Taktik SOS Çakar & 🔮 Kuantum Küre</h3>
-        <div style="display:flex; gap:6px; margin-bottom:8px;">
-            <button type="button" class="btn danger" style="flex:1;" onclick="toggleSosTorch()">🆘 SOS Çakar</button>
-            <button type="button" class="btn" onclick="stopSosTorch()">⏹️ Durdur</button>
-            <button type="button" class="btn fill" onclick="askQuantumOracle()">🔮 Küreye Sor</button>
+        <h3>🧠 Beyin Dalgası (Binaural Beats) Odak Stüdyosu</h3>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button type="button" class="btn fill" onclick="startBinaural(200, 240)">⚡ 40Hz Gamma (Üstün Odak)</button>
+            <button type="button" class="btn" onclick="startBinaural(200, 210)">🧘 10Hz Alpha (Huzur)</button>
+            <button type="button" class="btn danger" onclick="stopBinaural()">⏹️ Durdur</button>
         </div>
-        <div id="oracleText" style="font-size:12px; font-weight:800; color:#a78bfa; text-align:center;">Aklından bir soru tut ve Küreye Sor...</div>
+    </div>
+    <div class="card" style="text-align:center;">
+        <h3>🛰️ Canlı GPS Rakım, Hız & Kıble Pusulası</h3>
+        <div class="compass-ring"><div class="needle" id="compassNeedle"></div></div>
+        <div id="gpsInfo" style="font-size:12px; line-height:1.6; color:#e2e8f0; margin-bottom:8px;">Konum ve Pusula bekleniyor...</div>
+        <button type="button" class="btn fill" style="width:100%;" onclick="startGpsAndCompass()">📡 GPS & Pusula Sensörlerini Başlat</button>
+    </div>
+</div>
 <script>
-    let audioCtx = null, sonarOsc = null, sleepOsc = null, binauralNodes = null, stormStartTime = null, polyInterval = null, evpReversedBuffer = null, sosInterval = null;
+    let audioCtx = null, sonarOsc = null, sleepOsc = null, binauralNodes = null, stormStartTime = null, polyInterval = null, evpReversedBuffer = null;
     let seismoPoints = new Array(80).fill(0), polyPoints = new Array(60).fill(0);
     let dreams = JSON.parse(localStorage.getItem("lab_dreams") || "[]");
 
@@ -158,7 +161,7 @@
         if (!video.srcObject) {
             try {
                 video.srcObject = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
-            } catch (e) { alert("Kamera izni gerekli veya kamera bulunamadı."); }
+            } catch (e) { alert("Kamera izni gerekli veya cihaz kamerası bulunamadı."); }
         }
     }
 
@@ -226,7 +229,7 @@
         alert("Sismograf sensörü aktif!");
     }
 
-    function startStorm() { stormStartTime = Date.now(); document.getElementById("stormResult").innerText = "⏱️ Ses bekleniyor..."; }
+    function startStorm() { stormStartTime = Date.now(); document.getElementById("stormResult").innerText = "⏱️ Gök gürültüsü bekleniyor..."; }
     function stopStorm() {
         if (!stormStartTime) return;
         const sec = (Date.now() - stormStartTime) / 1000;
@@ -259,6 +262,7 @@
         res.innerText = isTruth ? "✅ ANALİZ: NABIZ STABİL — DOĞRU SÖYLÜYOR" : "⚠️ ANALİZ: YÜKSEK STRES — ŞÜPHELİ!";
         if (!isTruth && navigator.vibrate) navigator.vibrate();
     }
+
     function toggleSleepTone(hz) {
         stopSleepTone();
         const ctx = getAudioCtx(); sleepOsc = ctx.createOscillator();
@@ -285,34 +289,6 @@
     function renderDreams() {
         const list = document.getElementById("dreamList");
         if (list) list.innerHTML = dreams.map(d => `<div style="padding:6px; border-bottom:1px solid #1e293b;"><b>${d.date}:</b> ${d.text}</div>`).join("");
-    }
-
-    let f1State = "idle", f1GoTime = 0, f1Timeout = null;
-    function handleF1Click() {
-        const btn = document.getElementById("f1Btn"), st = document.getElementById("f1Status"), dots = document.querySelectorAll(".f1-dot");
-        if (f1State === "idle" || f1State === "done") {
-            f1State = "waiting"; dots.forEach(d => d.style.background = "#ff2a5f");
-            st.style.color = "#ff2a5f"; st.innerText = "IŞIKLARIN SÖNMESİNİ BEKLE..."; btn.innerText = "✋ ŞİMDİ BAS!";
-            f1Timeout = setTimeout(() => {
-                dots.forEach(d => d.style.background = "#10b981"); st.style.color = "#10b981";
-                st.innerText = "BAŞLA! HEMEN BAS!"; f1GoTime = performance.now(); f1State = "go";
-            }, 1500 + Math.random() * 2500);
-        } else if (f1State === "waiting") {
-            clearTimeout(f1Timeout); f1State = "done"; st.innerText = "❌ ERKEN ÇIKIŞ!"; btn.innerText = "🔄 Tekrar Dene";
-        } else if (f1State === "go") {
-            const ms = Math.round(performance.now() - f1GoTime); f1State = "done";
-            st.style.color = "#00f5d4"; st.innerText = `${ms} ms — ${ms < 210 ? "🏆 F1 PİLOTU!" : "⚡ HARİKA!"}`; btn.innerText = "🔄 Tekrar Ölç";
-        }
-    }
-
-    function toggleSosTorch() {
-        stopSosTorch(); let on = false;
-        sosInterval = setInterval(() => { on = !on; document.body.style.background = on ? "#ffffff" : "#05080a"; }, 250);
-    }
-    function stopSosTorch() { clearInterval(sosInterval); document.body.style.background = "#05080a"; }
-    function askQuantumOracle() {
-        const ans = ["✨ Kesinlikle Evet!", "⚡ Yakında büyük bir fırsat doğacak.", "🔥 Cesur adımını at.", "🛡️ Şimdilik bekle.", "🎯 %100 başaracaksın."];
-        document.getElementById("oracleText").innerText = ans.at(Math.floor(Math.random() * ans.length));
     }
 
     async function toggleEvpRecord() {
@@ -353,19 +329,18 @@
     function startGpsAndCompass() {
         const info = document.getElementById("gpsInfo");
         if ("geolocation" in navigator) {
-            navigator.geolocation.watchPosition((pos) => {
-                info.innerHTML = `<b>Konum:</b> ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}<br><b>Rakım:</b> ${pos.coords.altitude ? Math.round(pos.coords.altitude) + " m" : "--"} | <b>Hız:</b> ${pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(1) + " km/s" : "0.0 km/s"}<br><b>Kabe (Kıble):</b> ~151° Güneydoğu`;
-            }, () => { info.innerText = "Konum izni bekleniyor..."; }, { enableHighAccuracy: true });
-        }
-        window.addEventListener("deviceorientation", (e) => {
-            const h = e.webkitCompassHeading || (e.alpha ? 360 - e.alpha : 0);
-            const n = document.getElementById("compassNeedle");
-            if (n) n.style.transform = `rotate(${-h}deg)`;
-        });
-    }
-
-    drawSeismo();
-    renderDreams();
-</script>
+navigator.geolocation.watchPosition((pos) => {
+info.innerHTML = <b>Konum:</b> ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}<br><b>Rakım:</b> ${pos.coords.altitude ? Math.round(pos.coords.altitude) + " m" : "--"} | <b>Hız:</b> ${pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(1) + " km/s" : "0.0 km/s"}<br><b>Kabe (Kıble):</b> ~151° Güneydoğu;
+}, () => { info.innerText = "Konum izni bekleniyor..."; }, { enableHighAccuracy: true });
+}
+window.addEventListener("deviceorientation", (e) => {
+const h = e.webkitCompassHeading || (e.alpha ? 360 - e.alpha : 0);
+const n = document.getElementById("compassNeedle");
+if (n) n.style.transform = rotate(${-h}deg);
+});
+}
+drawSeismo();
+renderDreams();
+    </script>
 </body>
 </html>

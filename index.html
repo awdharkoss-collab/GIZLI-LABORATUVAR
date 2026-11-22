@@ -264,7 +264,7 @@
         const res = document.getElementById("polyResult"), isTruth = Math.random() > 0.45;
         res.style.color = isTruth ? "#10b981" : "#ff2a5f";
         res.innerText = isTruth ? "✅ ANALİZ: NABIZ STABİL — DOĞRU SÖYLÜYOR" : "⚠️ ANALİZ: YÜKSEK STRES — ŞÜPHELİ!";
-        if (!isTruth && navigator.vibrate) navigator.vibrate([120, 80, 120]);
+        if (!isTruth && navigator.vibrate) navigator.vibrate();
     }
     function toggleSleepTone(hz) {
         stopSleepTone();
@@ -402,7 +402,7 @@
             { name: "🔴 Mars", az: 215, alt: 46, col: "#ff2a5f", r: 4 },
             { name: "🌙 Ay", az: 245, alt: 38, col: "#f8fafc", r: 6 }
         ];
-        const rings =;
+        const rings = new Array(35, 70, 105);
         let heading = 0;
         function renderSky() {
             c.width = 240; c.height = 240;

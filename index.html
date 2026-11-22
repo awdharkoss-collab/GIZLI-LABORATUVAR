@@ -136,3 +136,236 @@
             <button type="button" class="btn fill" onclick="askQuantumOracle()">🔮 Küreye Sor</button>
         </div>
         <div id="oracleText" style="font-size:12px; font-weight:800; color:#a78bfa; text-align:center;">Aklından bir soru tut ve Küreye Sor...</div>
+<script>
+    let audioCtx = null, sonarOsc = null, sleepOsc = null, binauralNodes = null, stormStartTime = null, polyInterval = null, evpReversedBuffer = null, sosInterval = null;
+    let seismoPoints = new Array(80).fill(0), polyPoints = new Array(60).fill(0);
+    let dreams = JSON.parse(localStorage.getItem("lab_dreams") || "[]");
+
+    function getAudioCtx() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        return audioCtx;
+    }
+
+    function switchTab(idx) {
+        document.querySelectorAll(".tab").forEach((t, i) => t.classList.toggle("active", i === idx));
+        document.querySelectorAll(".view").forEach((v, i) => v.classList.toggle("active", i === idx));
+    }
+
+    async function startCamera(filterClass) {
+        const video = document.getElementById("camVideo");
+        video.className = filterClass;
+        if (!video.srcObject) {
+            try {
+                video.srcObject = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+            } catch (e) { alert("Kamera izni gerekli veya kamera bulunamadı."); }
+        }
+    }
+
+    function updateSonarFreq(val) {
+        document.getElementById("freqVal").innerText = val + " Hz";
+        if (sonarOsc) sonarOsc.frequency.setValueAtTime(Number(val), getAudioCtx().currentTime);
+    }
+
+    function toggleSonar() {
+        const btn = document.getElementById("sonarBtn");
+        if (sonarOsc) { sonarOsc.stop(); sonarOsc = null; btn.innerText = "🔊 Sonarı Başlat"; return; }
+        const ctx = getAudioCtx();
+        sonarOsc = ctx.createOscillator();
+        sonarOsc.type = "sine";
+        sonarOsc.frequency.setValueAtTime(Number(document.getElementById("freqSlider").value), ctx.currentTime);
+        sonarOsc.connect(ctx.destination);
+        sonarOsc.start();
+        btn.innerText = "⏹️ Sonarı Durdur";
+    }
+
+    async function startDbMeter() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const ctx = getAudioCtx();
+            const src = ctx.createMediaStreamSource(stream);
+            const analyser = ctx.createAnalyser();
+            analyser.fftSize = 256;
+            src.connect(analyser);
+            const data = new Uint8Array(analyser.frequencyBinCount);
+            setInterval(() => {
+                analyser.getByteFrequencyData(data);
+                const avg = data.reduce((a, b) => a + b, 0) / data.length;
+                document.getElementById("dbText").innerText = Math.min(115, Math.round(30 + avg * 0.85)) + " dB";
+            }, 250);
+        } catch (e) { alert("Mikrofon izni gerekli."); }
+    }
+
+    function drawSeismo() {
+        const c = document.getElementById("seismoCanvas");
+        if (!c) return;
+        const ctx = c.getContext("2d");
+        c.width = c.clientWidth || 300; c.height = 120;
+        ctx.clearRect(0, 0, c.width, c.height);
+        ctx.strokeStyle = "#00f5d4"; ctx.lineWidth = 2; ctx.beginPath();
+        seismoPoints.forEach((val, i) => {
+            const x = (i / (seismoPoints.length - 1)) * c.width;
+            const y = (c.height / 2) - val * 35;
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+    }
+
+    function enableSeismo() {
+        if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") DeviceMotionEvent.requestPermission();
+        window.addEventListener("devicemotion", (e) => {
+            const acc = e.acceleration || e.accelerationIncludingGravity;
+            if (!acc) return;
+            const gForce = Math.min(2.5, Math.abs(Math.sqrt((acc.x || 0) ** 2 + (acc.y || 0) ** 2 + (acc.z || 0) ** 2) - 9.81) / 9.81);
+            seismoPoints.push((Math.random() > 0.5 ? 1 : -1) * gForce * 1.8); seismoPoints.shift(); drawSeismo();
+            const label = document.getElementById("quakeLevel");
+            label.style.color = gForce > 0.35 ? "#ff2a5f" : "#00f5d4";
+            label.innerText = gForce.toFixed(2) + (gForce > 0.35 ? " G (SARSINTI!)" : " G (Sakin)");
+            if (gForce > 0.35 && navigator.vibrate) navigator.vibrate(200);
+        });
+        alert("Sismograf sensörü aktif!");
+    }
+
+    function startStorm() { stormStartTime = Date.now(); document.getElementById("stormResult").innerText = "⏱️ Ses bekleniyor..."; }
+    function stopStorm() {
+        if (!stormStartTime) return;
+        const sec = (Date.now() - stormStartTime) / 1000;
+        document.getElementById("stormResult").innerText = `⛈️ Fırtına ${(sec * 0.343).toFixed(2)} km Uzaklıkta (${sec.toFixed(1)} sn)`;
+        stormStartTime = null;
+    }
+
+    function startPolygraph() {
+        document.getElementById("fingerPad").classList.add("scanning");
+        const res = document.getElementById("polyResult");
+        res.style.color = "#00f5d4"; res.innerText = "📡 STRES DALGALARI TARANIYOR...";
+        polyInterval = setInterval(() => {
+            polyPoints.push((Math.random() - 0.5) * 1.8); polyPoints.shift();
+            const c = document.getElementById("polyCanvas"), ctx = c.getContext("2d");
+            c.width = c.clientWidth || 300; c.height = 80;
+            ctx.clearRect(0, 0, c.width, c.height); ctx.strokeStyle = "#ff2a5f"; ctx.lineWidth = 2; ctx.beginPath();
+            polyPoints.forEach((v, i) => {
+                const x = (i / (polyPoints.length - 1)) * c.width, y = 40 - v * 25;
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }, 80);
+    }
+
+    function finishPolygraph() {
+        document.getElementById("fingerPad").classList.remove("scanning");
+        clearInterval(polyInterval);
+        const res = document.getElementById("polyResult"), isTruth = Math.random() > 0.45;
+        res.style.color = isTruth ? "#10b981" : "#ff2a5f";
+        res.innerText = isTruth ? "✅ ANALİZ: NABIZ STABİL — DOĞRU SÖYLÜYOR" : "⚠️ ANALİZ: YÜKSEK STRES — ŞÜPHELİ!";
+        if (!isTruth && navigator.vibrate) navigator.vibrate();
+    }
+    function toggleSleepTone(hz) {
+        stopSleepTone();
+        const ctx = getAudioCtx(); sleepOsc = ctx.createOscillator();
+        const gain = ctx.createGain(); gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        sleepOsc.frequency.setValueAtTime(hz, ctx.currentTime);
+        sleepOsc.connect(gain); gain.connect(ctx.destination); sleepOsc.start();
+    }
+    function stopSleepTone() { if (sleepOsc) { sleepOsc.stop(); sleepOsc = null; } }
+    function scheduleLucidCue() {
+        alert("30 saniye sonra hafif bir Lucid Rüya sinyali çalacak.");
+        setTimeout(() => {
+            const ctx = getAudioCtx(), o = ctx.createOscillator();
+            o.frequency.setValueAtTime(880, ctx.currentTime); o.connect(ctx.destination); o.start();
+            setTimeout(() => o.stop(), 400);
+        }, 30000);
+    }
+    function saveDream() {
+        const txt = document.getElementById("dreamInput").value.trim();
+        if (!txt) return;
+        dreams.unshift({ date: new Date().toLocaleDateString("tr-TR"), text: txt });
+        localStorage.setItem("lab_dreams", JSON.stringify(dreams));
+        document.getElementById("dreamInput").value = ""; renderDreams();
+    }
+    function renderDreams() {
+        const list = document.getElementById("dreamList");
+        if (list) list.innerHTML = dreams.map(d => `<div style="padding:6px; border-bottom:1px solid #1e293b;"><b>${d.date}:</b> ${d.text}</div>`).join("");
+    }
+
+    let f1State = "idle", f1GoTime = 0, f1Timeout = null;
+    function handleF1Click() {
+        const btn = document.getElementById("f1Btn"), st = document.getElementById("f1Status"), dots = document.querySelectorAll(".f1-dot");
+        if (f1State === "idle" || f1State === "done") {
+            f1State = "waiting"; dots.forEach(d => d.style.background = "#ff2a5f");
+            st.style.color = "#ff2a5f"; st.innerText = "IŞIKLARIN SÖNMESİNİ BEKLE..."; btn.innerText = "✋ ŞİMDİ BAS!";
+            f1Timeout = setTimeout(() => {
+                dots.forEach(d => d.style.background = "#10b981"); st.style.color = "#10b981";
+                st.innerText = "BAŞLA! HEMEN BAS!"; f1GoTime = performance.now(); f1State = "go";
+            }, 1500 + Math.random() * 2500);
+        } else if (f1State === "waiting") {
+            clearTimeout(f1Timeout); f1State = "done"; st.innerText = "❌ ERKEN ÇIKIŞ!"; btn.innerText = "🔄 Tekrar Dene";
+        } else if (f1State === "go") {
+            const ms = Math.round(performance.now() - f1GoTime); f1State = "done";
+            st.style.color = "#00f5d4"; st.innerText = `${ms} ms — ${ms < 210 ? "🏆 F1 PİLOTU!" : "⚡ HARİKA!"}`; btn.innerText = "🔄 Tekrar Ölç";
+        }
+    }
+
+    function toggleSosTorch() {
+        stopSosTorch(); let on = false;
+        sosInterval = setInterval(() => { on = !on; document.body.style.background = on ? "#ffffff" : "#05080a"; }, 250);
+    }
+    function stopSosTorch() { clearInterval(sosInterval); document.body.style.background = "#05080a"; }
+    function askQuantumOracle() {
+        const ans = ["✨ Kesinlikle Evet!", "⚡ Yakında büyük bir fırsat doğacak.", "🔥 Cesur adımını at.", "🛡️ Şimdilik bekle.", "🎯 %100 başaracaksın."];
+        document.getElementById("oracleText").innerText = ans.at(Math.floor(Math.random() * ans.length));
+    }
+
+    async function toggleEvpRecord() {
+        const st = document.getElementById("evpStatus");
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const recorder = new MediaRecorder(stream), chunks = [];
+            recorder.ondataavailable = (e) => chunks.push(e.data);
+            recorder.onstop = async () => {
+                stream.getTracks().forEach(t => t.stop());
+                const ctx = getAudioCtx(), audioBuf = await ctx.decodeAudioData(await new Blob(chunks).arrayBuffer());
+                const rev = ctx.createBuffer(audioBuf.numberOfChannels, audioBuf.length, audioBuf.sampleRate);
+                for (let ch = 0; ch < audioBuf.numberOfChannels; ch++) {
+                    const srcData = audioBuf.getChannelData(ch), dstData = rev.getChannelData(ch);
+                    for (let i = 0; i < srcData.length; i++) dstData[i] = Math.max(-1, Math.min(1, srcData[srcData.length - 1 - i] * 2.5));
+                }
+                evpReversedBuffer = rev; st.innerText = "✅ Ses yakalandı! Şimdi 'Tersten Çal'a bas.";
+            };
+            recorder.start(); st.innerText = "🎙️ 5 sn taranıyor..."; setTimeout(() => recorder.stop(), 5000);
+        } catch (e) { st.innerText = "Mikrofon izni gerekli."; }
+    }
+
+    function playEvpReversed() {
+        if (!evpReversedBuffer) { alert("Önce 5 sn ses yakala!"); return; }
+        const ctx = getAudioCtx(), src = ctx.createBufferSource();
+        src.buffer = evpReversedBuffer; src.connect(ctx.destination); src.start();
+    }
+
+    function startBinaural(l, r) {
+        stopBinaural();
+        const ctx = getAudioCtx(), oL = ctx.createOscillator(), oR = ctx.createOscillator(), m = ctx.createChannelMerger(2), g = ctx.createGain();
+        g.gain.setValueAtTime(0.12, ctx.currentTime); oL.frequency.setValueAtTime(l, ctx.currentTime); oR.frequency.setValueAtTime(r, ctx.currentTime);
+        oL.connect(m, 0, 0); oR.connect(m, 0, 1); m.connect(g); g.connect(ctx.destination); oL.start(); oR.start();
+        binauralNodes = [oL, oR];
+    }
+    function stopBinaural() { if (binauralNodes) { binauralNodes.forEach(o => o.stop()); binauralNodes = null; } }
+
+    function startGpsAndCompass() {
+        const info = document.getElementById("gpsInfo");
+        if ("geolocation" in navigator) {
+            navigator.geolocation.watchPosition((pos) => {
+                info.innerHTML = `<b>Konum:</b> ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}<br><b>Rakım:</b> ${pos.coords.altitude ? Math.round(pos.coords.altitude) + " m" : "--"} | <b>Hız:</b> ${pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(1) + " km/s" : "0.0 km/s"}<br><b>Kabe (Kıble):</b> ~151° Güneydoğu`;
+            }, () => { info.innerText = "Konum izni bekleniyor..."; }, { enableHighAccuracy: true });
+        }
+        window.addEventListener("deviceorientation", (e) => {
+            const h = e.webkitCompassHeading || (e.alpha ? 360 - e.alpha : 0);
+            const n = document.getElementById("compassNeedle");
+            if (n) n.style.transform = `rotate(${-h}deg)`;
+        });
+    }
+
+    drawSeismo();
+    renderDreams();
+</script>
+</body>
+</html>

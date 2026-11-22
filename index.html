@@ -226,11 +226,8 @@
     async function startDbMeter() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const ctx = getAudioCtx();
-            const src = ctx.createMediaStreamSource(stream);
-            const analyser = ctx.createAnalyser();
-            analyser.fftSize = 256;
-            src.connect(analyser);
+            const ctx = getAudioCtx(), src = ctx.createMediaStreamSource(stream), analyser = ctx.createAnalyser();
+            analyser.fftSize = 256; src.connect(analyser);
             const data = new Uint8Array(analyser.frequencyBinCount);
             setInterval(() => {
                 analyser.getByteFrequencyData(data);
@@ -239,7 +236,6 @@
             }, 250);
         } catch (e) { alert("Mikrofon izni gerekli."); }
     }
-
     function drawSeismo() {
         const c = document.getElementById("seismoCanvas");
         if (!c) return;
@@ -303,7 +299,6 @@
         res.innerText = isTruth ? "✅ ANALİZ: NABIZ STABİL — DOĞRU SÖYLÜYOR" : "⚠️ ANALİZ: YÜKSEK STRES — ŞÜPHELİ!";
         if (!isTruth && navigator.vibrate) navigator.vibrate();
     }
-
     function toggleSleepTone(hz) {
         stopSleepTone();
         const ctx = getAudioCtx(); sleepOsc = ctx.createOscillator();
@@ -370,16 +365,17 @@
     function startGpsAndCompass() {
         const info = document.getElementById("gpsInfo");
         if ("geolocation" in navigator) {
-navigator.geolocation.watchPosition((pos) => {
-info.innerHTML = <b>Konum:</b> ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}<br><b>Rakım:</b> ${pos.coords.altitude ? Math.round(pos.coords.altitude) + " m" : "--"} | <b>Hız:</b> ${pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(1) + " km/s" : "0.0 km/s"}<br><b>Kabe (Kıble):</b> ~151° Güneydoğu;
-}, () => { info.innerText = "Konum izni bekleniyor..."; }, { enableHighAccuracy: true });
-}
-window.addEventListener("deviceorientation", (e) => {
-const h = e.webkitCompassHeading || (e.alpha ? 360 - e.alpha : 0);
-const n = document.getElementById("compassNeedle");
-if (n) n.style.transform = rotate(${-h}deg);
-});
-}    function startEmfDetector() {
+            navigator.geolocation.watchPosition((pos) => {
+                info.innerHTML = `<b>Konum:</b> ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}<br><b>Rakım:</b> ${pos.coords.altitude ? Math.round(pos.coords.altitude) + " m" : "--"} | <b>Hız:</b> ${pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(1) + " km/s" : "0.0 km/s"}<br><b>Kabe (Kıble):</b> ~151° Güneydoğu`;
+            }, () => { info.innerText = "Konum izni bekleniyor..."; }, { enableHighAccuracy: true });
+        }
+        window.addEventListener("deviceorientation", (e) => {
+            const h = e.webkitCompassHeading || (e.alpha ? 360 - e.alpha : 0);
+            const n = document.getElementById("compassNeedle");
+            if (n) n.style.transform = `rotate(${-h}deg)`;
+        });
+    }
+    function startEmfDetector() {
         const valEl = document.getElementById("emfValue"), barEl = document.getElementById("emfBar"), stEl = document.getElementById("emfStatus");
         function updateEmfUi(uT) {
             valEl.innerText = uT.toFixed(1) + " µT";
@@ -461,7 +457,6 @@ if (n) n.style.transform = rotate(${-h}deg);
             renderSky();
         });
     }
-
     let cymOsc = null, cymAnim = null, cymFreq = 432, liveVoiceHz = 0, liveVoiceAmp = 0, liveHarmonicRatio = 1;
     const saltGrains = Array.from({ length: 2200 }, () => ({
         x: 10 + Math.random() * 220,
@@ -589,12 +584,13 @@ if (n) n.style.transform = rotate(${-h}deg);
                     document.getElementById("cymFreqVal").innerText = "Ses bekleniyor... Konuş veya mırıldan";
                 }
             }, 60);
-} catch (e) {
-alert("Mikrofon izni gerekli.");
-}
-}
-drawSeismo();
-renderDreams();
-    </script>
+        } catch (e) {
+            alert("Mikrofon izni gerekli.");
+        }
+    }
+
+    drawSeismo();
+    renderDreams();
+</script>
 </body>
 </html>

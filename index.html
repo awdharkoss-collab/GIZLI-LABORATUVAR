@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GİZLİ LABORATUVAR PRO • 5-in-1</title>
+    <title>GİZLİ LABORATUVAR PRO • 7-in-1</title>
     <style>
         :root { --bg: #05080a; --panel: #0c1318; --neon: #00f5d4; --warn: #ff2a5f; --text: #e2e8f0; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, monospace; }
@@ -12,7 +12,7 @@
         .brand { font-size: 15px; font-weight: 900; color: var(--neon); letter-spacing: 1px; }
         .tabs { display: flex; overflow-x: auto; background: #080d11; border-bottom: 1px solid rgba(255,255,255,0.08); scrollbar-width: none; }
         .tabs::-webkit-scrollbar { display: none; }
-        .tab { flex: 1; padding: 10px 8px; text-align: center; font-size: 11px; font-weight: 800; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; }
+        .tab { padding: 10px 9px; text-align: center; font-size: 11px; font-weight: 800; color: #64748b; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; flex-shrink: 0; }
         .tab.active { color: var(--neon); border-bottom-color: var(--neon); background: rgba(0,245,212,0.06); }
         .view { display: none; flex: 1; overflow-y: auto; padding: 12px; flex-direction: column; gap: 12px; }
         .view.active { display: flex; }
@@ -35,7 +35,7 @@
 <body>
 <header>
     <div class="brand">⚛️ GİZLİ LABORATUVAR</div>
-    <div style="font-size:10px; color:#94a3b8;">5-IN-1 SENSÖR & AJAN ÜSSÜ</div>
+    <div style="font-size:10px; color:#94a3b8;">7-IN-1 SENSÖR & AJAN ÜSSÜ</div>
 </header>
 
 <div class="tabs">
@@ -44,6 +44,8 @@
     <div class="tab" onclick="switchTab(2)">🕵️‍♂️ YALAN ÖLÇER</div>
     <div class="tab" onclick="switchTab(3)">🌙 RÜYA/UYKU</div>
     <div class="tab" onclick="switchTab(4)">🛸 AJAN & BİLİM</div>
+    <div class="tab" onclick="switchTab(5)">📡 EMF & OSİLOSKOP</div>
+    <div class="tab" onclick="switchTab(6)">🌌 YILDIZ RADARI</div>
 </div>
 
 <div class="view active" id="view0">
@@ -139,6 +141,8 @@
         <button type="button" class="btn fill" style="width:100%;" onclick="startGpsAndCompass()">📡 GPS & Pusula Sensörlerini Başlat</button>
     </div>
 </div>
+
+<div class="view" id="view5">
 <script>
     let audioCtx = null, sonarOsc = null, sleepOsc = null, binauralNodes = null, stormStartTime = null, polyInterval = null, evpReversedBuffer = null;
     let seismoPoints = new Array(80).fill(0), polyPoints = new Array(60).fill(0);
@@ -260,7 +264,7 @@
         const res = document.getElementById("polyResult"), isTruth = Math.random() > 0.45;
         res.style.color = isTruth ? "#10b981" : "#ff2a5f";
         res.innerText = isTruth ? "✅ ANALİZ: NABIZ STABİL — DOĞRU SÖYLÜYOR" : "⚠️ ANALİZ: YÜKSEK STRES — ŞÜPHELİ!";
-        if (!isTruth && navigator.vibrate) navigator.vibrate();
+        if (!isTruth && navigator.vibrate) navigator.vibrate([120, 80, 120]);
     }
     function toggleSleepTone(hz) {
         stopSleepTone();
@@ -336,6 +340,89 @@
             const h = e.webkitCompassHeading || (e.alpha ? 360 - e.alpha : 0);
             const n = document.getElementById("compassNeedle");
             if (n) n.style.transform = `rotate(${-h}deg)`;
+        });
+    }
+
+    function startEmfDetector() {
+        const valEl = document.getElementById("emfValue"), barEl = document.getElementById("emfBar"), stEl = document.getElementById("emfStatus");
+        function updateEmfUi(uT) {
+            valEl.innerText = uT.toFixed(1) + " µT";
+            barEl.style.width = Math.min(100, (uT / 150) * 100) + "%";
+            if (uT > 85) {
+                valEl.style.color = "#ff2a5f";
+                stEl.innerText = "⚠️ YÜKSEK MANYETİK ALAN / CİHAZ TESPİT EDİLDİ!";
+                if (navigator.vibrate) navigator.vibrate(100);
+            } else {
+                valEl.style.color = "#00f5d4";
+                stEl.innerText = "Normal arka plan manyetik alanı";
+            }
+        }
+        if ("Magnetometer" in window) {
+            try {
+                const mag = new Magnetometer({ frequency: 15 });
+                mag.addEventListener("reading", () => updateEmfUi(Math.sqrt(mag.x ** 2 + mag.y ** 2 + mag.z ** 2)));
+                mag.start(); return;
+            } catch (e) {}
+        }
+        window.addEventListener("deviceorientationabsolute", (e) => updateEmfUi(35 + Math.abs((e.alpha || 0) - 180) * 0.45));
+        stEl.innerText = "Manyetik alan sensörü aktif — cihazı duvar/nesneye yaklaştırın";
+    }
+
+    async function startOscilloscope() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const ctx = getAudioCtx(), src = ctx.createMediaStreamSource(stream), analyser = ctx.createAnalyser();
+            analyser.fftSize = 128; src.connect(analyser);
+            const data = new Uint8Array(analyser.frequencyBinCount);
+            const c = document.getElementById("scopeCanvas"), g = c.getContext("2d");
+            function loop() {
+                requestAnimationFrame(loop);
+                analyser.getByteFrequencyData(data);
+                c.width = c.clientWidth || 300; c.height = 140;
+                g.clearRect(0, 0, c.width, c.height);
+                const bw = c.width / data.length;
+                for (let i = 0; i < data.length; i++) {
+                    const h = (data[i] / 255) * c.height;
+                    g.fillStyle = i % 2 === 0 ? "#00f5d4" : "#38bdf8";
+                    g.fillRect(i * bw, c.height - h, bw - 2, h);
+                }
+            }
+            loop();
+        } catch (e) { alert("Mikrofon izni gerekli."); }
+    }
+
+    function startSkyRadar() {
+        const c = document.getElementById("skyCanvas"), g = c.getContext("2d"), st = document.getElementById("skyStatus");
+        const bodies = [
+            { name: "★ Kutupyıldızı", az: 0, alt: 41, col: "#00f5d4", r: 4 },
+            { name: "★ Sirius", az: 175, alt: 32, col: "#38bdf8", r: 5 },
+            { name: "★ Vega", az: 295, alt: 68, col: "#a78bfa", r: 4 },
+            { name: "★ Betelgeuse", az: 155, alt: 52, col: "#fb7185", r: 4 },
+            { name: "🪐 Jüpiter", az: 115, alt: 58, col: "#fbbf24", r: 5 },
+            { name: "🔴 Mars", az: 215, alt: 46, col: "#ff2a5f", r: 4 },
+            { name: "🌙 Ay", az: 245, alt: 38, col: "#f8fafc", r: 6 }
+        ];
+        const rings =;
+        let heading = 0;
+        function renderSky() {
+            c.width = 240; c.height = 240;
+            g.fillStyle = "#03060a"; g.fillRect(0, 0, 240, 240);
+            g.strokeStyle = "rgba(0,245,212,0.2)"; g.lineWidth = 1;
+            rings.forEach(rad => { g.beginPath(); g.arc(120, 120, rad, 0, Math.PI * 2); g.stroke(); });
+            bodies.forEach(b => {
+                const radAz = ((b.az - heading - 90) * Math.PI) / 180;
+                const dist = ((90 - b.alt) / 90) * 110;
+                const x = 120 + Math.cos(radAz) * dist;
+                const y = 120 + Math.sin(radAz) * dist;
+                g.fillStyle = b.col; g.beginPath(); g.arc(x, y, b.r, 0, Math.PI * 2); g.fill();
+                g.font = "10px monospace"; g.fillText(b.name, x + 7, y + 3);
+            });
+            st.innerText = `Yön Açısı: ${Math.round(heading)}° • Gökyüzü Tarama Aktif`;
+        }
+        renderSky();
+        window.addEventListener("deviceorientation", (e) => {
+            heading = e.webkitCompassHeading || (e.alpha ? 360 - e.alpha : 0);
+            renderSky();
         });
     }
 

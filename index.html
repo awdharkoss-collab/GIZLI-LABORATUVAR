@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>GİZLİ LABORATUVAR PRO • 7-in-1</title>
+    <title>GİZLİ LABORATUVAR PRO • 8-in-1</title>
     <style>
         :root { --bg: #05080a; --panel: #0c1318; --neon: #00f5d4; --warn: #ff2a5f; --text: #e2e8f0; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, monospace; }
@@ -35,7 +35,7 @@
 <body>
 <header>
     <div class="brand">⚛️ GİZLİ LABORATUVAR</div>
-    <div style="font-size:10px; color:#94a3b8;">7-IN-1 SENSÖR & AJAN ÜSSÜ</div>
+    <div style="font-size:10px; color:#94a3b8;">8-IN-1 SENSÖR & FİZİK ÜSSÜ</div>
 </header>
 
 <div class="tabs">
@@ -46,6 +46,7 @@
     <div class="tab" onclick="switchTab(4)">🛸 AJAN & BİLİM</div>
     <div class="tab" onclick="switchTab(5)">📡 EMF & OSİLOSKOP</div>
     <div class="tab" onclick="switchTab(6)">🌌 YILDIZ RADARI</div>
+    <div class="tab" onclick="switchTab(7)">🌀 KİMATİK / TUZ</div>
 </div>
 
 <div class="view active" id="view0">
@@ -164,6 +165,19 @@
         <canvas id="skyCanvas" style="height:240px; border-radius:50%; max-width:240px; margin:8px auto;"></canvas>
         <div id="skyStatus" style="font-size:11px; color:var(--neon); margin:6px 0;">İstanbul Gökyüzü Kubbesi Hazır</div>
         <button type="button" class="btn fill" style="width:100%;" onclick="startSkyRadar()">🔭 Gökyüzü Sensörünü Başlat</button>
+    </div>
+</div>
+
+<div class="view" id="view7">
+    <div class="card" style="text-align:center;">
+        <h3>🌀 Kimatik (Cymatics) Ses & Tuz Plakası</h3>
+        <canvas id="cymaticCanvas" style="height:240px; max-width:240px; margin:8px auto; border-radius:14px;"></canvas>
+        <div style="font-size:12px; margin-bottom:6px;">Plaka Frekansı: <b id="cymFreqVal" style="color:var(--neon);">432 Hz</b></div>
+        <input type="range" id="cymSlider" min="110" max="960" value="432" style="width:100%; margin-bottom:8px;" oninput="updateCymaticFreq(this.value)">
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button type="button" class="btn fill" style="flex:1;" id="cymBtn" onclick="toggleCymatics()">🔊 Frekans & Tuz Başlat</button>
+            <button type="button" class="btn" onclick="startMicCymatics()">🎙️ Sesime Duyarlı Yap</button>
+        </div>
     </div>
 </div>
 <script>
@@ -289,6 +303,7 @@
         res.innerText = isTruth ? "✅ ANALİZ: NABIZ STABİL — DOĞRU SÖYLÜYOR" : "⚠️ ANALİZ: YÜKSEK STRES — ŞÜPHELİ!";
         if (!isTruth && navigator.vibrate) navigator.vibrate();
     }
+
     function toggleSleepTone(hz) {
         stopSleepTone();
         const ctx = getAudioCtx(); sleepOsc = ctx.createOscillator();
@@ -355,18 +370,16 @@
     function startGpsAndCompass() {
         const info = document.getElementById("gpsInfo");
         if ("geolocation" in navigator) {
-            navigator.geolocation.watchPosition((pos) => {
-                info.innerHTML = `<b>Konum:</b> ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}<br><b>Rakım:</b> ${pos.coords.altitude ? Math.round(pos.coords.altitude) + " m" : "--"} | <b>Hız:</b> ${pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(1) + " km/s" : "0.0 km/s"}<br><b>Kabe (Kıble):</b> ~151° Güneydoğu`;
-            }, () => { info.innerText = "Konum izni bekleniyor..."; }, { enableHighAccuracy: true });
-        }
-        window.addEventListener("deviceorientation", (e) => {
-            const h = e.webkitCompassHeading || (e.alpha ? 360 - e.alpha : 0);
-            const n = document.getElementById("compassNeedle");
-            if (n) n.style.transform = `rotate(${-h}deg)`;
-        });
-    }
-
-    function startEmfDetector() {
+navigator.geolocation.watchPosition((pos) => {
+info.innerHTML = <b>Konum:</b> ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}<br><b>Rakım:</b> ${pos.coords.altitude ? Math.round(pos.coords.altitude) + " m" : "--"} | <b>Hız:</b> ${pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(1) + " km/s" : "0.0 km/s"}<br><b>Kabe (Kıble):</b> ~151° Güneydoğu;
+}, () => { info.innerText = "Konum izni bekleniyor..."; }, { enableHighAccuracy: true });
+}
+window.addEventListener("deviceorientation", (e) => {
+const h = e.webkitCompassHeading || (e.alpha ? 360 - e.alpha : 0);
+const n = document.getElementById("compassNeedle");
+if (n) n.style.transform = rotate(${-h}deg);
+});
+}    function startEmfDetector() {
         const valEl = document.getElementById("emfValue"), barEl = document.getElementById("emfBar"), stEl = document.getElementById("emfStatus");
         function updateEmfUi(uT) {
             valEl.innerText = uT.toFixed(1) + " µT";
@@ -449,8 +462,139 @@
         });
     }
 
-    drawSeismo();
-    renderDreams();
-</script>
+    let cymOsc = null, cymAnim = null, cymFreq = 432, liveVoiceHz = 0, liveVoiceAmp = 0, liveHarmonicRatio = 1;
+    const saltGrains = Array.from({ length: 2200 }, () => ({
+        x: 10 + Math.random() * 220,
+        y: 10 + Math.random() * 220,
+        vx: 0,
+        vy: 0
+    }));
+
+    function updateCymaticFreq(val) {
+        cymFreq = Number(val);
+        liveVoiceHz = 0;
+        document.getElementById("cymFreqVal").innerText = val + " Hz (Sinyal)";
+        if (cymOsc) cymOsc.frequency.setValueAtTime(cymFreq, getAudioCtx().currentTime);
+    }
+
+    function chladniField(nx, ny, n, m, mix) {
+        const w1 = Math.cos(n * Math.PI * nx) * Math.cos(m * Math.PI * ny);
+        const w2 = Math.cos(m * Math.PI * nx) * Math.cos(n * Math.PI * ny);
+        return w1 - mix * w2;
+    }
+
+    function runCymaticEngine() {
+        if (cymAnim) return;
+        const c = document.getElementById("cymaticCanvas"), g = c.getContext("2d");
+        function step() {
+            cymAnim = requestAnimationFrame(step);
+            c.width = 240; c.height = 240;
+            g.fillStyle = "rgba(3, 6, 10, 0.45)";
+            g.fillRect(0, 0, 240, 240);
+
+            const isVoiceActive = liveVoiceAmp > 0.04;
+            const hz = isVoiceActive ? liveVoiceHz : (cymOsc ? cymFreq : 0);
+            const energy = isVoiceActive ? Math.min(2.2, liveVoiceAmp * 6) : (cymOsc ? 1.0 : 0);
+
+            const n = hz > 0 ? Math.max(1, Math.min(9, Math.floor(hz / 95) + 1)) : 3;
+            const m = hz > 0 ? Math.max(2, Math.min(10, Math.floor((hz * liveHarmonicRatio) / 68) + 2)) : 5;
+            const mix = isVoiceActive ? Math.min(1.2, 0.6 + liveHarmonicRatio * 0.3) : 1.0;
+
+            g.fillStyle = "#f8fafc";
+            const eps = 0.015;
+
+            for (let i = 0; i < saltGrains.length; i++) {
+                const p = saltGrains.at(i);
+                if (energy > 0.02) {
+                    const nx = (p.x / 120) - 1;
+                    const ny = (p.y / 120) - 1;
+                    const f0 = chladniField(nx, ny, n, m, mix);
+                    const absF = Math.abs(f0);
+
+                    if (absF > 0.025) {
+                        const fx = Math.abs(chladniField(nx + eps, ny, n, m, mix)) - absF;
+                        const fy = Math.abs(chladniField(nx, ny + eps, n, m, mix)) - absF;
+                        p.vx = p.vx * 0.72 - Math.sign(fx) * absF * energy * 1.4 + (Math.random() - 0.5) * absF * energy * 1.8;
+                        p.vy = p.vy * 0.72 - Math.sign(fy) * absF * energy * 1.4 + (Math.random() - 0.5) * absF * energy * 1.8;
+                        p.x += p.vx;
+                        p.y += p.vy;
+                    } else {
+                        p.vx *= 0.4;
+                        p.vy *= 0.4;
+                    }
+
+                    if (p.x < 6) { p.x = 6; p.vx *= -0.5; }
+                    if (p.x > 234) { p.x = 234; p.vx *= -0.5; }
+                    if (p.y < 6) { p.y = 6; p.vy *= -0.5; }
+                    if (p.y > 234) { p.y = 234; p.vy *= -0.5; }
+                }
+                g.fillRect(p.x, p.y, 1.5, 1.5);
+            }
+        }
+        step();
+    }
+
+    function toggleCymatics() {
+        const btn = document.getElementById("cymBtn");
+        if (cymOsc) {
+            cymOsc.stop(); cymOsc = null;
+            btn.innerText = "🔊 Frekans & Tuz Başlat";
+            return;
+        }
+        const ctx = getAudioCtx();
+        cymOsc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.14, ctx.currentTime);
+        cymOsc.type = "sine";
+        cymOsc.frequency.setValueAtTime(cymFreq, ctx.currentTime);
+        cymOsc.connect(gain); gain.connect(ctx.destination);
+        cymOsc.start();
+        btn.innerText = "⏹️ Durdur";
+        runCymaticEngine();
+    }
+
+    async function startMicCymatics() {
+        if (cymOsc) { cymOsc.stop(); cymOsc = null; document.getElementById("cymBtn").innerText = "🔊 Frekans & Tuz Başlat"; }
+        runCymaticEngine();
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const ctx = getAudioCtx();
+            const src = ctx.createMediaStreamSource(stream);
+            const analyser = ctx.createAnalyser();
+            analyser.fftSize = 2048;
+            src.connect(analyser);
+            const freqData = new Uint8Array(analyser.frequencyBinCount);
+            const binHz = ctx.sampleRate / analyser.fftSize;
+
+            setInterval(() => {
+                analyser.getByteFrequencyData(freqData);
+                let maxVal = 0, maxIdx = 0, secondVal = 0, secondIdx = 0, sum = 0;
+                for (let i = 3; i < 120; i++) {
+                    const v = freqData.at(i);
+                    sum += v;
+                    if (v > maxVal) {
+                        secondVal = maxVal; secondIdx = maxIdx;
+                        maxVal = v; maxIdx = i;
+                    } else if (v > secondVal) {
+                        secondVal = v; secondIdx = i;
+                    }
+                }
+                liveVoiceAmp = (sum / 117) / 255;
+                if (liveVoiceAmp > 0.04 && maxIdx > 0) {
+                    liveVoiceHz = Math.round(maxIdx * binHz);
+                    liveHarmonicRatio = secondIdx > 0 ? Math.max(0.5, Math.min(2.0, secondIdx / maxIdx)) : 1.0;
+                    document.getElementById("cymFreqVal").innerText = `${liveVoiceHz} Hz (Canlı Sesin)`;
+                } else {
+                    liveVoiceAmp = 0;
+                    document.getElementById("cymFreqVal").innerText = "Ses bekleniyor... Konuş veya mırıldan";
+                }
+            }, 60);
+} catch (e) {
+alert("Mikrofon izni gerekli.");
+}
+}
+drawSeismo();
+renderDreams();
+    </script>
 </body>
 </html>

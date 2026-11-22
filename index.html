@@ -47,7 +47,6 @@
     <div class="tab" onclick="switchTab(5)">🛸 AJAN & BİLİM</div>
 </div>
 
-<!-- 1. SEKME: GECE GÖRÜŞÜ, TERMAL & SONAR -->
 <div class="view active" id="view0">
     <div class="card">
         <h3>👁️ Gece Görüşü & Termal Optik</h3>
@@ -69,7 +68,6 @@
     </div>
 </div>
 
-<!-- 2. SEKME: DEPREM SİSMOGRAFI & FIRTINA MESAFE ÖLÇER -->
 <div class="view" id="view1">
     <div class="card">
         <h3>📈 Canlı Deprem & Sarsıntı Sismografı</h3>
@@ -89,7 +87,6 @@
     </div>
 </div>
 
-<!-- 3. SEKME: POLİGRAF YALAN MAKİNESİ -->
 <div class="view" id="view2">
     <div class="card" style="text-align:center;">
         <h3>🕵️‍♂️ Poligraf & Ses Stres Analizörü</h3>
@@ -100,7 +97,6 @@
     </div>
 </div>
 
-<!-- 4. SEKME: LUCİD RÜYA & UYKU STÜDYOSU -->
 <div class="view" id="view3">
     <div class="card">
         <h3>🌙 Lucid Rüya & Uyku Frekansları</h3>
@@ -119,7 +115,6 @@
     </div>
 </div>
 
-<!-- 5. SEKME: F1 REFLEKS, MORS FENERİ & KUANTUM KARAR KÜRESİ -->
 <div class="view" id="view4">
     <div class="card" style="text-align:center;">
         <h3>⚡ F1 Start Refleks Ölçer</h3>
@@ -138,4 +133,6 @@
         <div style="display:flex; gap:6px; margin-bottom:8px;">
             <button type="button" class="btn danger" style="flex:1;" onclick="toggleSosTorch()">🆘 SOS Çakar</button>
             <button type="button" class="btn" onclick="stopSosTorch()">⏹️ Durdur</button>
-
+            <button type="button" class="btn fill" onclick="askQuantumOracle()">🔮 Küreye Sor</button>
+        </div>
+        <div id="oracleText" style="font-size:12px; font-weight:800; color:#a78bfa; text-align:center;">Aklından bir soru tut ve Küreye Sor...</div>

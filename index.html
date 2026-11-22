@@ -161,7 +161,7 @@
         if (!video.srcObject) {
             try {
                 video.srcObject = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
-            } catch (e) { alert("Kamera izni gerekli veya cihaz kamerası bulunamadı."); }
+            } catch (e) { alert("Kamera izni gerekli veya kamera bulunamadı."); }
         }
     }
 
@@ -262,7 +262,6 @@
         res.innerText = isTruth ? "✅ ANALİZ: NABIZ STABİL — DOĞRU SÖYLÜYOR" : "⚠️ ANALİZ: YÜKSEK STRES — ŞÜPHELİ!";
         if (!isTruth && navigator.vibrate) navigator.vibrate();
     }
-
     function toggleSleepTone(hz) {
         stopSleepTone();
         const ctx = getAudioCtx(); sleepOsc = ctx.createOscillator();
@@ -329,18 +328,19 @@
     function startGpsAndCompass() {
         const info = document.getElementById("gpsInfo");
         if ("geolocation" in navigator) {
-navigator.geolocation.watchPosition((pos) => {
-info.innerHTML = <b>Konum:</b> ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}<br><b>Rakım:</b> ${pos.coords.altitude ? Math.round(pos.coords.altitude) + " m" : "--"} | <b>Hız:</b> ${pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(1) + " km/s" : "0.0 km/s"}<br><b>Kabe (Kıble):</b> ~151° Güneydoğu;
-}, () => { info.innerText = "Konum izni bekleniyor..."; }, { enableHighAccuracy: true });
-}
-window.addEventListener("deviceorientation", (e) => {
-const h = e.webkitCompassHeading || (e.alpha ? 360 - e.alpha : 0);
-const n = document.getElementById("compassNeedle");
-if (n) n.style.transform = rotate(${-h}deg);
-});
-}
-drawSeismo();
-renderDreams();
-    </script>
+            navigator.geolocation.watchPosition((pos) => {
+                info.innerHTML = `<b>Konum:</b> ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}<br><b>Rakım:</b> ${pos.coords.altitude ? Math.round(pos.coords.altitude) + " m" : "--"} | <b>Hız:</b> ${pos.coords.speed ? (pos.coords.speed * 3.6).toFixed(1) + " km/s" : "0.0 km/s"}<br><b>Kabe (Kıble):</b> ~151° Güneydoğu`;
+            }, () => { info.innerText = "Konum izni bekleniyor..."; }, { enableHighAccuracy: true });
+        }
+        window.addEventListener("deviceorientation", (e) => {
+            const h = e.webkitCompassHeading || (e.alpha ? 360 - e.alpha : 0);
+            const n = document.getElementById("compassNeedle");
+            if (n) n.style.transform = `rotate(${-h}deg)`;
+        });
+    }
+
+    drawSeismo();
+    renderDreams();
+</script>
 </body>
 </html>
